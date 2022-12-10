@@ -16,6 +16,9 @@ app.listen(port, () => {
 app.get("/", (req, res) => {
   var array = fs.readFileSync("../entrada.txt").toString().split("\n");
   array = array.filter((item) => item);
+  for (var i = 0; i < array.length; i++) {
+    array[i] = array[i].replace("\r", "");
+  }
 
   if (array[0].toUpperCase() == "FIRMAR") {
     console.log("Request for signing received");
