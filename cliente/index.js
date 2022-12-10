@@ -4,7 +4,7 @@ const crypto = require("crypto");
 var request = require("request");
 
 const app = express();
-port = 3000;
+port = 8010;
 
 app.use(express.urlencoded());
 app.use(express.json());
@@ -15,12 +15,31 @@ app.listen(port, () => {
 
 app.get("/", (req, res) => {
   var array = fs.readFileSync("../entrada.txt").toString().split("\n");
-  if (array[0] == "FIRMAR") {
-    sign(array[1], array[2], res);
-  } else if (array[0] == "AUTENTICAR") {
-    autenticate(array[1], array[2], res);
-  } else if (array[0] == "INTEGRIDAD") {
-    checkIntegrity(array[1], array[2], array[3], res);
+  array = array.filter((item) => item);
+
+  if (array[0].toUpperCase() == "FIRMAR") {
+    console.log("Request for signing received");
+    if (array.length == 3) {
+      sign(array[1], array[2], res);
+    } else {
+      res.send("Error en la entrada");
+    }
+  } else if (array[0].toUpperCase() == "AUTENTICAR") {
+    console.log("Request for autenticate received");
+    if (array.length == 3) {
+      autenticate(array[1], array[2], res);
+    } else {
+      res.send("Error en la entrada");
+    }
+  } else if (array[0].toUpperCase() == "INTEGRIDAD") {
+    console.log("Request for integrity received");
+    if (array.length == 4) {
+      checkIntegrity(array[1], array[2], array[3], res);
+    } else {
+      res.send("Error en la entrada");
+    }
+  } else {
+    res.send("Error en la entrada");
   }
 });
 
@@ -29,9 +48,9 @@ function checkIntegrity(key, message, cipheredHash, callback) {
   var toSave;
   try {
     var decipheredHash = decipher(cipheredHash, key);
+    // problemas con decipher
     var hash = calculateHash(message);
-    console.log(hash);
-    console.log(decipheredHash);
+
     if (decipheredHash == hash) {
       toSave = "INTEGRO";
     }

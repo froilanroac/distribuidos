@@ -27,7 +27,7 @@ function sign(data, callback) {
 }
 
 function autenticate(data, callback) {
-  makeRequest("PUT", data, "http://localhost:8002/autenticate", callback);
+  makeRequest("PUT", data, "http://localhost:8005/autenticate", callback);
 }
 
 function makeRequest(method, data, url, callback) {
