@@ -42,15 +42,9 @@ function randomSign() {
 }
 
 function cipher(message, key) {
-  var cipher = crypto.createCipher("aes-256-cbc", key);
-  var encryptedData = cipher.update(message, "utf8", "base64");
-  encryptedData += cipher.final("base64");
-  return encryptedData;
-}
+  var mykey = crypto.createCipher("aes-128-cbc", key);
+  var mystr = mykey.update(message, "utf8", "hex");
+  mystr += mykey.final("hex");
 
-function decipher(message, key) {
-  var decipher = crypto.createDecipher("aes-256-cbc", key);
-  var decryptedData = decipher.update(message, "base64", "utf8");
-  decryptedData += decipher.final("utf8");
-  return decryptedData;
+  return mystr;
 }
