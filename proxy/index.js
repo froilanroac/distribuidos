@@ -39,10 +39,11 @@ function makeRequest(method, data, url, callback) {
       method: method,
     },
     function (error, response, body) {
-      if (!error) {
+      if (!error && response.statusCode == 200) {
         callback.send(body);
       } else {
-        callback.send(`Unexpected error: ${error}`);
+        console.error(`Unexpected error in ${url}`);
+        callback.status(500).send(body);
       }
     }
   );

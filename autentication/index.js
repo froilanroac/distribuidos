@@ -1,6 +1,6 @@
 const express = require("express");
 const fs = require("fs");
-var request = require("request");
+const request = require("request");
 
 const app = express();
 port = 8005;
@@ -18,23 +18,27 @@ app.put("/autenticate", (req, res) => {
 });
 
 function autenticate(name, key, callback) {
-  var identidades = fs
-    .readFileSync("../identidades.txt")
-    .toString()
-    .split("\n");
-  var toSave = "CLAVE INVALIDA";
-  for (var i = 0; i <= identidades.length; i++) {
-    if (identidades[i] == key) {
-      if (identidades[i + 1] == name) {
-        toSave = "CLAVE VALIDA";
+  try {
+    const identidades = fs
+      .readFileSync("../identidades.txt")
+      .toString()
+      .split("\n");
+
+    var toSave = "CLAVE INVALIDA";
+
+    for (var i = 0; i <= identidades.length; i++) {
+      if (identidades[i] == key) {
+        if (identidades[i + 1] == name) {
+          toSave = "CLAVE VALIDA";
+        }
       }
     }
+    const body = { action: "autenticate", result: toSave };
+    callback.send(body);
+  } catch (error) {
+    console.error(`Unexpected error: ${error.message}`);
+    callback
+      .status(500)
+      .send(`Unexpected error in autentication server -> ${error}`);
   }
-
-  fs.writeFile("../salida.txt", toSave, function (error) {
-    if (error) {
-      callback.send(error);
-    }
-    callback.send("Autentication successfuly done");
-  });
 }
