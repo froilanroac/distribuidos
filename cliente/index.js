@@ -45,6 +45,8 @@ function checkIntegrity(key, message, cipheredHash, callback) {
     var decipheredHash = decipher(cipheredHash, key);
     // problemas con decipher
     var hash = calculateHash(message);
+    console.log("Deciphered " + decipheredHash);
+    console.log("Hash " + hash);
 
     if (decipheredHash == hash) {
       toSave = "INTEGRO";
@@ -102,10 +104,10 @@ function calculateHash(message) {
 }
 
 function decipher(message, key) {
-  var decipher = crypto.createDecipher("aes-256-cbc", key);
-  var decryptedData = decipher.update(message, "base64", "utf8");
-  decryptedData += decipher.final("utf8");
-  return decryptedData;
+  var mykey = crypto.createDecipher("aes-128-cbc", key);
+  var mystr = mykey.update(message, "hex", "utf8");
+  mystr += mykey.final("utf8");
+  return mystr;
 }
 
 // chain of responsability pattern
