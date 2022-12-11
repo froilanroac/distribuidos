@@ -14,34 +14,29 @@ app.listen(port, () => {
 });
 
 app.get("/", (req, res) => {
-  var array = fs.readFileSync("../entrada.txt").toString().split("\n");
-  array = array.filter((item) => item);
+  const data = getEntry();
 
-  if (array[0].toUpperCase() == "FIRMAR") {
-    console.log("Request for signing received");
-    if (array.length == 3) {
-      sign(array[1], array[2], res);
-    } else {
-      res.send("Error en la entrada");
-    }
-  } else if (array[0].toUpperCase() == "AUTENTICAR") {
-    console.log("Request for autenticate received");
-    if (array.length == 3) {
-      autenticate(array[1], array[2], res);
-    } else {
-      res.send("Error en la entrada");
-    }
-  } else if (array[0].toUpperCase() == "INTEGRIDAD") {
-    console.log("Request for integrity received");
-    if (array.length == 4) {
-      checkIntegrity(array[1], array[2], array[3], res);
-    } else {
-      res.send("Error en la entrada");
-    }
-  } else {
-    res.send("Error en la entrada");
+  const signHandler = new SignHandler();
+  const autenticateHandler = new AutenticateHandler();
+  const integrityHandler = new IntegrityHandler();
+
+  signHandler.setNext(autenticateHandler).setNext(integrityHandler);
+  const result = signHandler.handle(data, res);
+
+  if (result == null) {
+    res.send("Data error in entry file");
   }
 });
+
+function getEntry() {
+  var array = fs
+    .readFileSync("../entrada.txt")
+    .toString()
+    .replace("\\r", "")
+    .split("\n");
+  array = array.filter((item) => item);
+  return array;
+}
 
 function checkIntegrity(key, message, cipheredHash, callback) {
   // cambiar esta funcion asap
@@ -111,4 +106,49 @@ function decipher(message, key) {
   var decryptedData = decipher.update(message, "base64", "utf8");
   decryptedData += decipher.final("utf8");
   return decryptedData;
+}
+
+// chain of responsability pattern
+
+class AbstractHandler {
+  setNext(handler) {
+    this.nextHandler = handler;
+    return handler;
+  }
+  handle(request, callback) {
+    if (this.nextHandler) {
+      return this.nextHandler.handle(request, callback);
+    }
+    return null;
+  }
+}
+class SignHandler extends AbstractHandler {
+  handle(request, callback) {
+    if (request.length == 3 && request[0].toUpperCase() == "FIRMAR") {
+      console.log("Request for signing received");
+      sign(request[1], request[2], callback);
+      return "Signed request done";
+    }
+    return super.handle(request, callback);
+  }
+}
+class AutenticateHandler extends AbstractHandler {
+  handle(request, callback) {
+    if (request.length == 3 && request[0].toUpperCase() == "AUTENTICAR") {
+      console.log("Request for autenticate received");
+      autenticate(request[1], request[2], callback);
+      return "Autenticate request done";
+    }
+    return super.handle(request, callback);
+  }
+}
+class IntegrityHandler extends AbstractHandler {
+  handle(request, callback) {
+    if (request.length == 4 && request[0].toUpperCase() === "INTEGRIDAD") {
+      console.log("Request for integrity received");
+      checkIntegrity(request[1], request[2], request[3], callback);
+      return "Integrity request done";
+    }
+    return super.handle(request);
+  }
 }
