@@ -14,9 +14,7 @@ app.listen(port, () => {
 });
 
 app.get("/", (req, res) => {
-
   const data = getEntry();
-
 
   const signHandler = new SignHandler();
   const autenticateHandler = new AutenticateHandler();
@@ -47,26 +45,14 @@ function checkIntegrity(key, message, cipheredHash, callback) {
     var decipheredHash = decipher(cipheredHash, key);
     // problemas con decipher
     var hash = calculateHash(message);
-    console.log("Deciphered " + decipheredHash);
-    console.log("Hash " + hash);
 
     if (decipheredHash == hash) {
       toSave = "INTEGRO";
     }
-    fs.writeFile("../salida.txt", toSave, function (error) {
-      if (error) {
-        callback.send(error);
-      }
-      callback.send("Integrity check successfuly done");
-    });
+    write("../salida.txt", toSave, callback, "Integrity request done");
   } catch (error) {
     toSave = "NO INTEGRO";
-    fs.writeFile("../salida.txt", toSave, function (error) {
-      if (error) {
-        callback.send(error);
-      }
-      callback.send("Integrity check successfuly done");
-    });
+    write("../salida.txt", toSave, callback, "Integrity request done");
   }
 }
 
@@ -91,10 +77,20 @@ function makeRequest(method, data, url, callback) {
       method: method,
     },
     function (error, response, body) {
-      if (!error) {
-        callback.send(body);
+      if (!error && response.statusCode == 200 && body) {
+        const body_ = JSON.parse(body);
+        const signWriteHandler = new SignWriteHandler();
+        const autenticateWriteHandler = new AutenticateWriteHandler();
+        signWriteHandler.setNext(autenticateWriteHandler);
+        const result = signWriteHandler.handle(body_, callback);
+        if (result == null) {
+          callback.send("Error inesperado en el manejo de las respuestas");
+        }
       } else {
-        callback.send(`Error Inesperado  ${error}`);
+        console.error(`Unexpected error in ${url}`);
+        callback
+          .status(500)
+          .send(body ? body : "Unexpected error without body");
       }
     }
   );
@@ -155,4 +151,35 @@ class IntegrityHandler extends AbstractHandler {
     }
     return super.handle(request);
   }
+}
+
+class SignWriteHandler extends AbstractHandler {
+  handle(request, callback) {
+    if (request.action == "sign" && request.key && request.ciphered) {
+      const toSave = request.key + "\n" + request.ciphered + "\n";
+      write("../salida.txt", toSave, callback, "Sign request done");
+      return "Sign request done";
+    }
+    return super.handle(request, callback);
+  }
+}
+class AutenticateWriteHandler extends AbstractHandler {
+  handle(request, callback) {
+    if (request.action == "autenticate" && request.result) {
+      const toSave = request.result + "\n";
+      write("../salida.txt", toSave, callback, "Autenticate request done");
+      return "Autentication request done";
+    }
+    return super.handle(request, callback);
+  }
+}
+
+function write(path, data, callback, message) {
+  fs.writeFile(path, data, function (error) {
+    if (error) {
+      callback.send(error);
+    } else {
+      callback.send(message);
+    }
+  });
 }

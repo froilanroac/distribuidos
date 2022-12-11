@@ -1,6 +1,5 @@
 const express = require("express");
 const fs = require("fs");
-var request = require("request");
 var crypto = require("crypto");
 
 const app = express();
@@ -19,22 +18,22 @@ app.put("/sign", (req, res) => {
 });
 
 function sign(name, hash, callback) {
-  var key = randomSign();
-  var ciphered = cipher(hash, key);
-  var toSaveSalida = key + "\n" + ciphered + "\n";
-  var toSaveIdentidades = key + "\n" + name + "\n";
+  try {
+    var key = randomSign();
+    var ciphered = cipher(hash, key);
+    var body = { action: "sign", key: key, ciphered: ciphered };
+    var toSaveIdentidades = key + "\n" + name + "\n";
 
-  fs.writeFile("../salida.txt", toSaveSalida, function (error) {
-    if (error) {
-      callback.send(err);
-    }
     fs.appendFile("../identidades.txt", toSaveIdentidades, function (error) {
       if (error) {
-        callback.send(error);
+        callback.status(500).send(`Unexpected ${error}`);
       }
-      callback.send("Sign successfuly done");
+      callback.send(body);
     });
-  });
+  } catch (error) {
+    console.error(`Unexpected error: ${error.message}`);
+    callback.status(500).send(`Unexpected error in keys server -> ${error}`);
+  }
 }
 
 function randomSign() {
@@ -45,6 +44,5 @@ function cipher(message, key) {
   var mykey = crypto.createCipher("aes-128-cbc", key);
   var mystr = mykey.update(message, "utf8", "hex");
   mystr += mykey.final("hex");
-
   return mystr;
 }
