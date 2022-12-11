@@ -14,7 +14,9 @@ app.listen(port, () => {
 });
 
 app.get("/", (req, res) => {
+
   const data = getEntry();
+
 
   const signHandler = new SignHandler();
   const autenticateHandler = new AutenticateHandler();
