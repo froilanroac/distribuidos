@@ -13,7 +13,7 @@ app.listen(port, () => {
 });
 
 app.put("/autenticate", (req, res) => {
-  console.log("Request for autenticate received ");
+  console.log("Request for autentication received ");
   autenticate(req.body.name, req.body.key, res);
 });
 
@@ -23,6 +23,7 @@ function autenticate(name, key, callback) {
       .readFileSync("../identidades.txt")
       .toString()
       .split("\n");
+    console.log(identidades);
 
     var toSave = "CLAVE INVALIDA";
 

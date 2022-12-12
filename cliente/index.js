@@ -29,11 +29,10 @@ app.get("/", (req, res) => {
 });
 
 function getEntry() {
-  var array = fs
-    .readFileSync("../entrada.txt")
-    .toString()
-    .replace("\\r", "")
-    .split("\n");
+  var array = fs.readFileSync("../entrada.txt").toString().split("\n");
+  for (i = 0; i < array.length; i++) {
+    array[i] = array[i].replace("\r", "");
+  }
   array = array.filter((item) => item);
   return array;
 }
@@ -135,9 +134,9 @@ class SignHandler extends AbstractHandler {
 class AutenticateHandler extends AbstractHandler {
   handle(request, callback) {
     if (request.length == 3 && request[0].toUpperCase() == "AUTENTICAR") {
-      console.log("Request for autenticate received");
+      console.log("Request for autentication received");
       autenticate(request[1], request[2], callback);
-      return "Autenticate request done";
+      return "Autentication request done";
     }
     return super.handle(request, callback);
   }
@@ -167,7 +166,7 @@ class AutenticateWriteHandler extends AbstractHandler {
   handle(request, callback) {
     if (request.action == "autenticate" && request.result) {
       const toSave = request.result + "\n";
-      write("../salida.txt", toSave, callback, "Autenticate request done");
+      write("../salida.txt", toSave, callback, "Autentication request done");
       return "Autentication request done";
     }
     return super.handle(request, callback);
