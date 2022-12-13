@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
 });
 
 function getEntry() {
-  var array = fs.readFileSync("../entrada.txt").toString().split("\n");
+  var array = fs.readFileSync("./data/entrada.txt").toString().split("\n");
   for (i = 0; i < array.length; i++) {
     array[i] = array[i].replace("\r", "");
   }
@@ -48,10 +48,10 @@ function checkIntegrity(key, message, cipheredHash, callback) {
     if (decipheredHash == hash) {
       toSave = "INTEGRO";
     }
-    write("../salida.txt", toSave, callback, "Integrity request done");
+    write("./data/salida.txt", toSave, callback, "Integrity request done");
   } catch (error) {
     toSave = "NO INTEGRO";
-    write("../salida.txt", toSave, callback, "Integrity request done");
+    write("./data/salida.txt", toSave, callback, "Integrity request done");
   }
 }
 
@@ -156,7 +156,7 @@ class SignWriteHandler extends AbstractHandler {
   handle(request, callback) {
     if (request.action == "sign" && request.key && request.ciphered) {
       const toSave = request.key + "\n" + request.ciphered + "\n";
-      write("../salida.txt", toSave, callback, "Sign request done");
+      write("./data/salida.txt", toSave, callback, "Sign request done");
       return "Sign request done";
     }
     return super.handle(request, callback);
@@ -166,7 +166,12 @@ class AutenticateWriteHandler extends AbstractHandler {
   handle(request, callback) {
     if (request.action == "autenticate" && request.result) {
       const toSave = request.result + "\n";
-      write("../salida.txt", toSave, callback, "Autentication request done");
+      write(
+        "./data/salida.txt",
+        toSave,
+        callback,
+        "Autentication request done"
+      );
       return "Autentication request done";
     }
     return super.handle(request, callback);
