@@ -23,7 +23,6 @@ function autenticate(name, key, callback) {
       .readFileSync("./data/identidades.txt")
       .toString()
       .split("\n");
-    console.log(identidades);
 
     var toSave = "CLAVE INVALIDA";
 
