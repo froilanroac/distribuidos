@@ -20,10 +20,9 @@ app.put("/autenticate", (req, res) => {
 function autenticate(name, key, callback) {
   try {
     const identidades = fs
-      .readFileSync("../identidades.txt")
+      .readFileSync("./data/identidades.txt")
       .toString()
       .split("\n");
-    console.log(identidades);
 
     var toSave = "CLAVE INVALIDA";
 

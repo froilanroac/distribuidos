@@ -29,12 +29,17 @@ app.get("/", (req, res) => {
 });
 
 function getEntry() {
-  var array = fs.readFileSync("../entrada.txt").toString().split("\n");
-  for (i = 0; i < array.length; i++) {
-    array[i] = array[i].replace("\r", "");
+  try {
+    var array = fs.readFileSync("./data/entrada.txt").toString().split("\n");
+    for (i = 0; i < array.length; i++) {
+      array[i] = array[i].replace("\r", "");
+    }
+    array = array.filter((item) => item);
+    return array;
+  } catch (error) {
+    console.error(`Unexpected error in entry file: ${error.message}`);
+    return [];
   }
-  array = array.filter((item) => item);
-  return array;
 }
 
 function checkIntegrity(key, message, cipheredHash, callback) {
@@ -48,22 +53,22 @@ function checkIntegrity(key, message, cipheredHash, callback) {
     if (decipheredHash == hash) {
       toSave = "INTEGRO";
     }
-    write("../salida.txt", toSave, callback, "Integrity request done");
+    write("./data/salida.txt", toSave, callback, "Integrity request done");
   } catch (error) {
     toSave = "NO INTEGRO";
-    write("../salida.txt", toSave, callback, "Integrity request done");
+    write("./data/salida.txt", toSave, callback, "Integrity request done");
   }
 }
 
 function autenticate(key, name, callback) {
   var data = `{ "key" : "${key}" , "name" : "${name}" }`;
-  makeRequest("POST", data, "http://localhost:8000/autenticate", callback);
+  makeRequest("POST", data, "http://proxy:8000/autenticate", callback);
 }
 
 function sign(name, message, callback) {
   var hash = calculateHash(message);
   var data = `{ "hash" : "${hash}" , "name" : "${name}" }`;
-  makeRequest("POST", data, "http://localhost:8000/sign", callback);
+  makeRequest("POST", data, "http://proxy:8000/sign", callback);
 }
 
 function makeRequest(method, data, url, callback) {
@@ -156,7 +161,7 @@ class SignWriteHandler extends AbstractHandler {
   handle(request, callback) {
     if (request.action == "sign" && request.key && request.ciphered) {
       const toSave = request.key + "\n" + request.ciphered + "\n";
-      write("../salida.txt", toSave, callback, "Sign request done");
+      write("./data/salida.txt", toSave, callback, "Sign request done");
       return "Sign request done";
     }
     return super.handle(request, callback);
@@ -166,7 +171,12 @@ class AutenticateWriteHandler extends AbstractHandler {
   handle(request, callback) {
     if (request.action == "autenticate" && request.result) {
       const toSave = request.result + "\n";
-      write("../salida.txt", toSave, callback, "Autentication request done");
+      write(
+        "./data/salida.txt",
+        toSave,
+        callback,
+        "Autentication request done"
+      );
       return "Autentication request done";
     }
     return super.handle(request, callback);
