@@ -24,12 +24,16 @@ function sign(name, hash, callback) {
     var body = { action: "sign", key: key, ciphered: ciphered };
     var toSaveIdentidades = key + "\n" + name + "\n";
 
-    fs.appendFile("../identidades.txt", toSaveIdentidades, function (error) {
-      if (error) {
-        callback.status(500).send(`Unexpected ${error}`);
+    fs.appendFile(
+      "./data/identidades.txt",
+      toSaveIdentidades,
+      function (error) {
+        if (error) {
+          callback.status(500).send(`Unexpected ${error}`);
+        }
+        callback.send(body);
       }
-      callback.send(body);
-    });
+    );
   } catch (error) {
     console.error(`Unexpected error: ${error.message}`);
     callback.status(500).send(`Unexpected error in keys server -> ${error}`);

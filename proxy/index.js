@@ -23,11 +23,11 @@ app.post("/autenticate", (req, res) => {
 });
 
 function sign(data, callback) {
-  makeRequest("PUT", data, "http://localhost:8001/sign", callback);
+  makeRequest("PUT", data, "http://keys:8001/sign", callback);
 }
 
 function autenticate(data, callback) {
-  makeRequest("PUT", data, "http://localhost:8005/autenticate", callback);
+  makeRequest("PUT", data, "http://autentication:8005/autenticate", callback);
 }
 
 function makeRequest(method, data, url, callback) {
