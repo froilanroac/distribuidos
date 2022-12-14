@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.2",
+    "proper-lockfile": "^4.1.2",
     "request": "^2.88.2"
   }
 }

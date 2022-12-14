@@ -18,7 +18,7 @@ Bla bla bla docker y node
     $ docker build . -t client
     $ docker run --net red --name client -v **path absoluto de la carpeta dist**:/app/data -p 8010:8010 client
     ejemplo del comando de arriba:
-    $docker run --net red --name client -v /Users/froilanroac/Desktop/dist:/app/data -p 8001:8001 client
+    $docker run --net red --name client -v /Users/froilanroac/Desktop/dist:/app/data -p 8010:8010 client
 
 ## en la carpeta "proxy"
 

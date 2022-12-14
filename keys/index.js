@@ -1,6 +1,8 @@
 const express = require("express");
 const fs = require("fs");
 var crypto = require("crypto");
+var lockFile = require("proper-lockfile");
+const docker = true;
 
 const app = express();
 port = 8001;
@@ -24,16 +26,24 @@ function sign(name, hash, callback) {
     var body = { action: "sign", key: key, ciphered: ciphered };
     var toSaveIdentidades = key + "\n" + name + "\n";
 
-    fs.appendFile(
-      "./data/identidades.txt",
-      toSaveIdentidades,
-      function (error) {
-        if (error) {
-          callback.status(500).send(`Unexpected ${error}`);
-        }
-        callback.send(body);
-      }
-    );
+    lockFile
+      .lock(docker ? "./data/identidades.txt" : "../identidades.txt")
+      .then(() => {
+        fs.appendFile(
+          docker ? "./data/identidades.txt" : "../identidades.txt",
+          toSaveIdentidades,
+          function (err) {
+            callback.send(body);
+          }
+        );
+        return lockFile.unlock(
+          docker ? "./data/identidades.txt" : "../identidades.txt"
+        );
+      })
+      .catch((err) => {
+        console.error(`Unexpected error: ${err.message}`);
+        callback.status(500).send(`Unexpected error in keys server -> ${err}`);
+      });
   } catch (error) {
     console.error(`Unexpected error: ${error.message}`);
     callback.status(500).send(`Unexpected error in keys server -> ${error}`);
