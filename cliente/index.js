@@ -4,17 +4,19 @@ const crypto = require("crypto");
 var request = require("request");
 const docker = true;
 
-const app = express();
+const app = express(); //Se crea la aplicación
 port = 8010;
 
 app.use(express.urlencoded());
 app.use(express.json());
 
+//Se asigna el puerto en el cual escuchará la aplicación
 app.listen(port, () => {
   console.log(`Client server listening on port ${port}`);
 });
 
 app.get("/", (req, res) => {
+  //Se define la manera en la que se atenderán las solicitudes
   const data = getEntry();
 
   const signHandler = new SignHandler();
@@ -30,6 +32,7 @@ app.get("/", (req, res) => {
 });
 
 function getEntry() {
+  //Función que extrae los datos del .txt de entrada
   try {
     var array = fs
       .readFileSync(docker ? "./data/entrada.txt" : "../entrada.txt")
@@ -47,7 +50,7 @@ function getEntry() {
 }
 
 function checkIntegrity(key, message, cipheredHash, callback) {
-  var toSave;
+  var toSave; //Función que revisa la integridad de un mensaje
   try {
     var decipheredHash = decipher(cipheredHash, key);
 
@@ -73,6 +76,7 @@ function checkIntegrity(key, message, cipheredHash, callback) {
   }
 }
 
+//Función que realiza la llamada al servidor de autenticación
 function autenticate(key, name, callback) {
   var data = `{ "key" : "${key}" , "name" : "${name}" }`;
   makeRequest(
@@ -83,6 +87,7 @@ function autenticate(key, name, callback) {
   );
 }
 
+//Función que realiza la llamada al proxy para firmar
 function sign(name, message, callback) {
   var hash = calculateHash(message);
   var data = `{ "hash" : "${hash}" , "name" : "${name}" }`;
@@ -94,6 +99,7 @@ function sign(name, message, callback) {
   );
 }
 
+//Función que se encarga de construir las peticiones
 function makeRequest(method, data, url, callback) {
   var jsonData = JSON.parse(data);
   var response = request(
@@ -128,11 +134,13 @@ function makeRequest(method, data, url, callback) {
   );
 }
 
+//Función que calcula el hash de un mensaje
 function calculateHash(message) {
   const hash = crypto.createHash("sha256").update(message).digest("hex");
   return hash;
 }
 
+//Función que decifra un mensaje con su llave
 function decipher(message, key) {
   var mykey = crypto.createDecipher("aes-128-cbc", key);
   var mystr = mykey.update(message, "hex", "utf8");
@@ -141,7 +149,7 @@ function decipher(message, key) {
 }
 
 // chain of responsability pattern
-
+//Clase del manejador abstracto
 class AbstractHandler {
   setNext(handler) {
     this.nextHandler = handler;
@@ -154,6 +162,8 @@ class AbstractHandler {
     return null;
   }
 }
+
+//Clase del manejador para la firma
 class SignHandler extends AbstractHandler {
   handle(request, callback) {
     if (
@@ -168,6 +178,8 @@ class SignHandler extends AbstractHandler {
     return super.handle(request, callback);
   }
 }
+
+//Clase del manejador para la autenticación
 class AutenticateHandler extends AbstractHandler {
   handle(request, callback) {
     if (
@@ -182,6 +194,8 @@ class AutenticateHandler extends AbstractHandler {
     return super.handle(request, callback);
   }
 }
+
+//Clase del manejador para la integridad
 class IntegrityHandler extends AbstractHandler {
   handle(request, callback) {
     if (
@@ -197,6 +211,7 @@ class IntegrityHandler extends AbstractHandler {
   }
 }
 
+//Clase del manejador para la escritura de firma
 class SignWriteHandler extends AbstractHandler {
   handle(request, callback) {
     if (request.action == "sign" && request.key && request.ciphered) {
@@ -212,6 +227,8 @@ class SignWriteHandler extends AbstractHandler {
     return super.handle(request, callback);
   }
 }
+
+//Clase del manejador para la escritura de autenticación
 class AutenticateWriteHandler extends AbstractHandler {
   handle(request, callback) {
     if (request.action == "autenticate" && request.result) {
@@ -228,6 +245,7 @@ class AutenticateWriteHandler extends AbstractHandler {
   }
 }
 
+//Función para escribir en los archivos
 function write(path, data, callback, message) {
   fs.writeFile(path, data, function (error) {
     if (error) {

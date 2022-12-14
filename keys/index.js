@@ -4,21 +4,24 @@ var crypto = require("crypto");
 var lockFile = require("proper-lockfile");
 const docker = true;
 
-const app = express();
+const app = express(); //Se crea la aplicación
 port = 8001;
 
 app.use(express.urlencoded());
 app.use(express.json());
 
+//Se asigna el puerto en el cual escuchará la aplicación
 app.listen(port, () => {
   console.log(`Keys server listening on port ${port}`);
 });
 
+//Se asigna la ruta para recibir las peticiones de firma
 app.put("/sign", (req, res) => {
   console.log("Request for signing received ");
   sign(req.body.name, req.body.hash, res);
 });
 
+//Función que se encarga de realizar la firma
 function sign(name, hash, callback) {
   try {
     var key = randomSign();
@@ -69,10 +72,12 @@ function sign(name, hash, callback) {
   }
 }
 
+//Función que genera una firma aleatoria
 function randomSign() {
   return (Math.floor(Math.random() * 90000000) + 10000000).toString();
 }
 
+//Función que cifra un mensaje
 function cipher(message, key) {
   var mykey = crypto.createCipher("aes-128-cbc", key);
   var mystr = mykey.update(message, "utf8", "hex");

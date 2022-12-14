@@ -4,21 +4,24 @@ const request = require("request");
 var lockFile = require("proper-lockfile");
 const docker = true;
 
-const app = express();
+const app = express(); //Se crea la aplicación
 port = 8005;
 
 app.use(express.urlencoded());
 app.use(express.json());
 
+//Se asigna el puerto en el cual escuchará la aplicación
 app.listen(port, () => {
   console.log(`Autentication server listening on port ${port}`);
 });
 
+//Se asigna la ruta para recibir las peticiones de autenticación
 app.put("/autenticate", async (req, res) => {
   console.log("Request for autentication received ");
   autenticate(req.body.name, req.body.key, res);
 });
 
+//Función que asegura la exclusividad mutua revisando si el archivo esta bloqueado(en uso)
 async function checkLockFile() {
   return lockFile
     .check(docker ? "./data/identidades.txt" : "../identidades.txt")
@@ -28,6 +31,7 @@ async function checkLockFile() {
     });
 }
 
+//Función que lee el .txt para verificar las credenciales de un usuario
 function checkIdentity(name, key) {
   const identidades = fs
     .readFileSync(docker ? "./data/identidades.txt" : "../identidades.txt")
@@ -44,6 +48,7 @@ function checkIdentity(name, key) {
   return toSave;
 }
 
+//Función que se encarga de autenticar las credenciales de un usuario
 async function autenticate(name, key, callback) {
   var counter = 0;
   const interval = setInterval(async () => {
