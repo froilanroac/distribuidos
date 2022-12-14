@@ -24,16 +24,35 @@ function sign(name, hash, callback) {
     var key = randomSign();
     var ciphered = cipher(hash, key);
     var body = { action: "sign", key: key, ciphered: ciphered };
-    var toSaveIdentidades = key + "\n" + name + "\n" + "0";
+    var toSaveIdentidades = key + "\n" + name;
 
     lockFile
       .lock(docker ? "./data/identidades.txt" : "../identidades.txt")
       .then(() => {
-        fs.appendFile(
+        var data = fs
+          .readFileSync(
+            docker ? "./data/identidades.txt" : "../identidades.txt"
+          )
+          .toString()
+          .split("\n");
+        data.pop();
+        data.forEach((e) => {
+          toSaveIdentidades += "\n" + e;
+        });
+
+        toSaveIdentidades += "\n0";
+
+        fs.writeFile(
           docker ? "./data/identidades.txt" : "../identidades.txt",
           toSaveIdentidades,
-          function (err) {
-            callback.send(body);
+          function (error) {
+            if (error) {
+              callback
+                .status(500)
+                .send("Unexpected error in keys server: " + error);
+            } else {
+              callback.send(body);
+            }
           }
         );
         return lockFile.unlock(
@@ -41,11 +60,11 @@ function sign(name, hash, callback) {
         );
       })
       .catch((err) => {
-        console.error(`Unexpected error: ${err.message}`);
+        console.error(`Unexpected error 1: ${err.message}`);
         callback.status(500).send(`Unexpected error in keys server -> ${err}`);
       });
   } catch (error) {
-    console.error(`Unexpected error: ${error.message}`);
+    console.error(`Unexpected error 2: ${error.message}`);
     callback.status(500).send(`Unexpected error in keys server -> ${error}`);
   }
 }
