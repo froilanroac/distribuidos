@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 var request = require("request");
+const docker = true;
 
 const app = express();
 port = 8000;
@@ -23,11 +24,21 @@ app.post("/autenticate", (req, res) => {
 });
 
 function sign(data, callback) {
-  makeRequest("PUT", data, "http://keys:8001/sign", callback);
+  makeRequest(
+    "PUT",
+    data,
+    `http://${docker ? "keys" : "localhost"}:8001/sign`,
+    callback
+  );
 }
 
 function autenticate(data, callback) {
-  makeRequest("PUT", data, "http://autentication:8005/autenticate", callback);
+  makeRequest(
+    "PUT",
+    data,
+    `http://${docker ? "autentication" : "localhost"}:8005/autenticate`,
+    callback
+  );
 }
 
 function makeRequest(method, data, url, callback) {

@@ -2,6 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const crypto = require("crypto");
 var request = require("request");
+const docker = true;
 
 const app = express();
 port = 8010;
@@ -30,7 +31,10 @@ app.get("/", (req, res) => {
 
 function getEntry() {
   try {
-    var array = fs.readFileSync("./data/entrada.txt").toString().split("\n");
+    var array = fs
+      .readFileSync(docker ? "./data/entrada.txt" : "../entrada.txt")
+      .toString()
+      .split("\n");
     for (i = 0; i < array.length; i++) {
       array[i] = array[i].replace("\r", "");
     }
@@ -43,32 +47,51 @@ function getEntry() {
 }
 
 function checkIntegrity(key, message, cipheredHash, callback) {
-  // cambiar esta funcion asap
   var toSave;
   try {
     var decipheredHash = decipher(cipheredHash, key);
-    // problemas con decipher
+
     var hash = calculateHash(message);
 
     if (decipheredHash == hash) {
       toSave = "INTEGRO";
     }
-    write("./data/salida.txt", toSave, callback, "Integrity request done");
+    write(
+      docker ? "./data/salida.txt" : "../salida.txt",
+      toSave,
+      callback,
+      "Integrity request done"
+    );
   } catch (error) {
     toSave = "NO INTEGRO";
-    write("./data/salida.txt", toSave, callback, "Integrity request done");
+    write(
+      docker ? "./data/salida.txt" : "../salida.txt",
+      toSave,
+      callback,
+      "Integrity request done"
+    );
   }
 }
 
 function autenticate(key, name, callback) {
   var data = `{ "key" : "${key}" , "name" : "${name}" }`;
-  makeRequest("POST", data, "http://proxy:8000/autenticate", callback);
+  makeRequest(
+    "POST",
+    data,
+    `http://${docker ? "proxy" : "localhost"}:8000/autenticate`,
+    callback
+  );
 }
 
 function sign(name, message, callback) {
   var hash = calculateHash(message);
   var data = `{ "hash" : "${hash}" , "name" : "${name}" }`;
-  makeRequest("POST", data, "http://proxy:8000/sign", callback);
+  makeRequest(
+    "POST",
+    data,
+    `http://${docker ? "proxy" : "localhost"}:8000/sign`,
+    callback
+  );
 }
 
 function makeRequest(method, data, url, callback) {
@@ -82,7 +105,12 @@ function makeRequest(method, data, url, callback) {
     },
     function (error, response, body) {
       if (!error && response.statusCode == 200 && body) {
-        const body_ = JSON.parse(body);
+        var body_;
+        try {
+          body_ = JSON.parse(body);
+        } catch (error) {
+          body_ = {};
+        }
         const signWriteHandler = new SignWriteHandler();
         const autenticateWriteHandler = new AutenticateWriteHandler();
         signWriteHandler.setNext(autenticateWriteHandler);
@@ -161,7 +189,12 @@ class SignWriteHandler extends AbstractHandler {
   handle(request, callback) {
     if (request.action == "sign" && request.key && request.ciphered) {
       const toSave = request.key + "\n" + request.ciphered + "\n";
-      write("./data/salida.txt", toSave, callback, "Sign request done");
+      write(
+        docker ? "./data/salida.txt" : "../salida.txt",
+        toSave,
+        callback,
+        "Sign request done"
+      );
       return "Sign request done";
     }
     return super.handle(request, callback);
@@ -172,7 +205,7 @@ class AutenticateWriteHandler extends AbstractHandler {
     if (request.action == "autenticate" && request.result) {
       const toSave = request.result + "\n";
       write(
-        "./data/salida.txt",
+        docker ? "./data/salida.txt" : "../salida.txt",
         toSave,
         callback,
         "Autentication request done"
