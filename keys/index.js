@@ -24,7 +24,7 @@ function sign(name, hash, callback) {
     var key = randomSign();
     var ciphered = cipher(hash, key);
     var body = { action: "sign", key: key, ciphered: ciphered };
-    var toSaveIdentidades = key + "\n" + name + "\n";
+    var toSaveIdentidades = key + "\n" + name + "\n" + "0";
 
     lockFile
       .lock(docker ? "./data/identidades.txt" : "../identidades.txt")
