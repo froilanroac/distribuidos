@@ -54,7 +54,7 @@ function checkIntegrity(key, message, cipheredHash, callback) {
     var hash = calculateHash(message);
 
     if (decipheredHash == hash) {
-      toSave = "INTEGRO";
+      toSave = "INTEGRO" + "\n" + "0";
     }
     write(
       docker ? "./data/salida.txt" : "../salida.txt",
@@ -63,7 +63,7 @@ function checkIntegrity(key, message, cipheredHash, callback) {
       "Integrity request done"
     );
   } catch (error) {
-    toSave = "NO INTEGRO";
+    toSave = "NO INTEGRO" + "\n" + "0";
     write(
       docker ? "./data/salida.txt" : "../salida.txt",
       toSave,
@@ -156,7 +156,11 @@ class AbstractHandler {
 }
 class SignHandler extends AbstractHandler {
   handle(request, callback) {
-    if (request.length == 3 && request[0].toUpperCase() == "FIRMAR") {
+    if (
+      request.length == 4 &&
+      request[0].toUpperCase() == "FIRMAR" &&
+      request[3] == "0"
+    ) {
       console.log("Request for signing received");
       sign(request[1], request[2], callback);
       return "Signed request done";
@@ -166,7 +170,11 @@ class SignHandler extends AbstractHandler {
 }
 class AutenticateHandler extends AbstractHandler {
   handle(request, callback) {
-    if (request.length == 3 && request[0].toUpperCase() == "AUTENTICAR") {
+    if (
+      request.length == 4 &&
+      request[0].toUpperCase() == "AUTENTICAR" &&
+      request[3] == "0"
+    ) {
       console.log("Request for autentication received");
       autenticate(request[1], request[2], callback);
       return "Autentication request done";
@@ -176,7 +184,11 @@ class AutenticateHandler extends AbstractHandler {
 }
 class IntegrityHandler extends AbstractHandler {
   handle(request, callback) {
-    if (request.length == 4 && request[0].toUpperCase() === "INTEGRIDAD") {
+    if (
+      request.length == 5 &&
+      request[0].toUpperCase() === "INTEGRIDAD" &&
+      request[4] == "0"
+    ) {
       console.log("Request for integrity received");
       checkIntegrity(request[1], request[2], request[3], callback);
       return "Integrity request done";
@@ -188,7 +200,7 @@ class IntegrityHandler extends AbstractHandler {
 class SignWriteHandler extends AbstractHandler {
   handle(request, callback) {
     if (request.action == "sign" && request.key && request.ciphered) {
-      const toSave = request.key + "\n" + request.ciphered + "\n";
+      const toSave = request.key + "\n" + request.ciphered + "\n" + "0";
       write(
         docker ? "./data/salida.txt" : "../salida.txt",
         toSave,
@@ -203,7 +215,7 @@ class SignWriteHandler extends AbstractHandler {
 class AutenticateWriteHandler extends AbstractHandler {
   handle(request, callback) {
     if (request.action == "autenticate" && request.result) {
-      const toSave = request.result + "\n";
+      const toSave = request.result + "\n" + "0";
       write(
         docker ? "./data/salida.txt" : "../salida.txt",
         toSave,
