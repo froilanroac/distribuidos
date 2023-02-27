@@ -1,7 +1,5 @@
 # Proyecto de distribuidos
 
-Bla bla bla docker y node
-
 # PREREQUISITOS:
 
 - Docker 20.10.21 o superior
